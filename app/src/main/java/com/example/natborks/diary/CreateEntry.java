@@ -2,6 +2,8 @@ package com.example.natborks.diary;
 
 import android.arch.lifecycle.LiveData;
 import android.arch.lifecycle.Observer;
+import android.arch.lifecycle.ViewModel;
+import android.arch.lifecycle.ViewModelProviders;
 import android.content.Context;
 import android.content.Intent;
 import android.support.annotation.Nullable;
@@ -63,11 +65,13 @@ public class CreateEntry extends AppCompatActivity {
                 // populate the UI
                 mTaskId = intent.getIntExtra( EXTRA_TASK_ID, DEFAULT_ENTRY_ID);
 
-                final LiveData<DiaryEntry> entry = mDb.entryDao().loadEntryById(mTaskId);
-                entry.observe(this, new Observer<DiaryEntry>() {
+                AddEntryViewModelFactory factory = new AddEntryViewModelFactory(mDb, mTaskId);
+                final AddEntryViewModel viewModel
+                        = ViewModelProviders.of(this, factory).get(AddEntryViewModel.class);
+                viewModel.getEntry().observe(this, new Observer<DiaryEntry>() {
                     @Override
                     public void onChanged(@Nullable DiaryEntry diaryEntry) {
-                        entry.removeObserver(this);
+                        viewModel.getEntry().removeObserver(this);
                         populateUI(diaryEntry);
                     }
                 });

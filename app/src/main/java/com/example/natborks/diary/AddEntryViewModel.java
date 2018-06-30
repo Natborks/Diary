@@ -9,8 +9,8 @@ import com.example.natborks.diary.Database.DiaryEntry;
 public class AddEntryViewModel extends ViewModel {
     private LiveData<DiaryEntry> entry;
 
-    public AddEntryViewModel(AppDatabase database, ){
-
+    public AddEntryViewModel(AppDatabase database, int entryId){
+        entry = database.entryDao().loadEntryById(entryId);
     }
 
     public LiveData<DiaryEntry> getEntry() {
