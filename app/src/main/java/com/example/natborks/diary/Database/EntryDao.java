@@ -1,5 +1,6 @@
 package com.example.natborks.diary.Database;
 
+import android.arch.lifecycle.LiveData;
 import android.arch.persistence.room.Dao;
 import android.arch.persistence.room.Delete;
 import android.arch.persistence.room.Insert;
@@ -13,7 +14,7 @@ import java.util.List;
 public interface EntryDao {
 
     @Query("SELECT * FROM Entry")
-    public List<DiaryEntry> loadAllEntries();
+    public LiveData<List<DiaryEntry>> loadAllEntries();
 
     @Insert
     void insertEntry(DiaryEntry diaryEntry);
@@ -24,4 +25,6 @@ public interface EntryDao {
     @Delete
     void deleteEntry(DiaryEntry diaryEntry);
 
+    @Query("SELECT * FROM Entry WHERE id = :entryId")
+    LiveData<DiaryEntry> loadEntryById(int entryId);
 }

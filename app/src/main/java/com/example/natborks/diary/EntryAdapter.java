@@ -4,6 +4,7 @@ package com.example.natborks.diary;
 import android.arch.persistence.room.Database;
 import android.content.Context;
 import android.support.v7.widget.RecyclerView;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -25,11 +26,13 @@ public class EntryAdapter extends RecyclerView.Adapter<EntryAdapter.EntryViewHol
 
     private final EntryAdapterOnClickHandler mClickHandler;
 
+    //private final View.OnClickListener mOnClickListener = new View.OnClickListener();
+
     // Date formatter
     private SimpleDateFormat dateFormat = new SimpleDateFormat(DATE_FORMAT, Locale.getDefault());
 
     interface EntryAdapterOnClickHandler{
-        void onClick(String entry);
+        void onClick(int entry);
     }
 
     public EntryAdapter(EntryAdapterOnClickHandler handler){
@@ -46,17 +49,26 @@ public class EntryAdapter extends RecyclerView.Adapter<EntryAdapter.EntryViewHol
         public EntryViewHolder(View view){
             super(view);
            titleView = (TextView) view.findViewById(R.id.tv_entryTitle);
-           bodyView = (TextView) view.findViewById(R.id.tv_entryTitle);
+           bodyView = (TextView) view.findViewById(R.id.tv_entryDescription);
            createdAt = (TextView) view.findViewById(R.id.tv_createdAt);
+
+            view.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    int adatperPostion = getAdapterPosition();
+                    int entryItem = mDataSet.get(getAdapterPosition()).getId();
+
+                    mClickHandler.onClick(entryItem);
+                }
+            });
         }
 
-        public void onClick(View v){
-            /*int adatperPostion = getAdapterPosition();
-            String entryItem = mDataSet[adatperPostion];
-            mClickHandler.onClick(entryItem);*/
 
+
+        public void onClick(View v){
             int adatperPostion = getAdapterPosition();
-            String entryItem = mDataSet.get(getAdapterPosition()).getBody();
+            int entryItem = mDataSet.get(getAdapterPosition()).getId();
+
             mClickHandler.onClick(entryItem);
         }
     }
@@ -92,6 +104,10 @@ public class EntryAdapter extends RecyclerView.Adapter<EntryAdapter.EntryViewHol
     public int getItemCount() {
         if (null == mDataSet) return 0;
         return mDataSet.size();
+    }
+
+    public List<DiaryEntry> getEntries() {
+        return mDataSet;
     }
 
     public void setEntryData(List<DiaryEntry> entryData) {

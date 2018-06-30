@@ -1,7 +1,10 @@
 package com.example.natborks.diary;
 
+import android.arch.lifecycle.LiveData;
+import android.arch.lifecycle.Observer;
 import android.content.Context;
 import android.content.Intent;
+import android.support.annotation.Nullable;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.view.Menu;
@@ -13,6 +16,7 @@ import android.widget.RadioGroup;
 import android.widget.Toast;
 
 import com.example.natborks.diary.Database.AppDatabase;
+import com.example.natborks.diary.Database.AppExecutors;
 import com.example.natborks.diary.Database.DiaryEntry;
 
 import java.time.LocalDate;
@@ -57,6 +61,16 @@ public class CreateEntry extends AppCompatActivity {
             mButton.setText(R.string.update_button);
             if (mTaskId == DEFAULT_ENTRY_ID) {
                 // populate the UI
+                mTaskId = intent.getIntExtra( EXTRA_TASK_ID, DEFAULT_ENTRY_ID);
+
+                final LiveData<DiaryEntry> entry = mDb.entryDao().loadEntryById(mTaskId);
+                entry.observe(this, new Observer<DiaryEntry>() {
+                    @Override
+                    public void onChanged(@Nullable DiaryEntry diaryEntry) {
+                        entry.removeObserver(this);
+                        populateUI(diaryEntry);
+                    }
+                });
             }
         }
     }
@@ -100,7 +114,12 @@ public class CreateEntry extends AppCompatActivity {
     }
 
     private void populateUI(DiaryEntry entry) {
+        if(null == entry){
+            return;
+        }
 
+        mEditTitleText.setText(entry.getTitle());
+        mEditBodyText.setText(entry.getBody());
     }
 
     public void onSaveButtonClicked() {
@@ -108,12 +127,24 @@ public class CreateEntry extends AppCompatActivity {
         String body = mEditBodyText.getText().toString();
         Date date = new Date();
 
-        DiaryEntry diaryEntry = new DiaryEntry(title,body,date);
+        final DiaryEntry diaryEntry = new DiaryEntry(title,body,date);
 
-        mDb.entryDao().insertEntry(diaryEntry);
+        AppExecutors.getInstance().diskIO().execute(new Runnable() {
+            @Override
+            public void run() {
+                if(mTaskId == DEFAULT_ENTRY_ID) {
+                    mDb.entryDao().insertEntry(diaryEntry);
+                }else{
+                    diaryEntry.setId(mTaskId);
+                    mDb.entryDao().updateEntry(diaryEntry);
+                }
+            }
+        });
 
         String toastMsg = "Entry saved";
         Toast.makeText(this,toastMsg,Toast.LENGTH_LONG).show();
         finish();
+
+
     }
 }
