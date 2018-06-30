@@ -19,9 +19,6 @@
         <activity android:name=".CreateEntry">
 
         </activity>
-        <activity android:name=".Entry">
-
-        </activity>
     </application>
 
 </manifest>
